@@ -38,6 +38,10 @@ export default function RecruiterDashboard() {
   // Recruiter Viewing a Specific Candidate Application Drawer
   const [selectedApplication, setSelectedApplication] = useState<any | null>(null);
 
+  // Automated Data Retention & Inactivity Purge State
+  const [cleaningUp, setCleaningUp] = useState(false);
+  const [cleanupToast, setCleanupToast] = useState('');
+
   // Post New Job Modal
   const [showAddJobModal, setShowAddJobModal] = useState(false);
   const [creatingJob, setCreatingJob] = useState(false);
@@ -222,7 +226,7 @@ export default function RecruiterDashboard() {
     }
   };
 
-  // Update Application Status
+  // Update Application Status (Purges resume file automatically upon Rejection)
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     try {
       await fetch(`/api/application/${id}`, {
@@ -232,10 +236,36 @@ export default function RecruiterDashboard() {
       });
       await fetchApplications();
       if (selectedApplication?.id === id) {
-        setSelectedApplication((prev: any) => prev ? { ...prev, status: newStatus } : null);
+        setSelectedApplication((prev: any) =>
+          prev
+            ? {
+                ...prev,
+                status: newStatus,
+                resume_url: newStatus === 'Rejected' ? null : prev.resume_url,
+              }
+            : null
+        );
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // Trigger Automated Inactivity & Lifecycle Cleanup Routine
+  const handleRunCleanup = async () => {
+    try {
+      setCleaningUp(true);
+      const res = await fetch('/api/cron/cleanup', { method: 'POST' });
+      const json = await res.json();
+      if (json.success) {
+        setCleanupToast(json.message);
+        await fetchApplications();
+        setTimeout(() => setCleanupToast(''), 6000);
+      }
+    } catch (err) {
+      console.error('Cleanup trigger error:', err);
+    } finally {
+      setCleaningUp(false);
     }
   };
 
@@ -698,33 +728,52 @@ export default function RecruiterDashboard() {
                   </div>
                 </div>
 
-                {/* PDF Document Viewer Container - Fitted Height */}
-                {selectedApplication.resume_url && selectedApplication.resume_url.startsWith('data:application/pdf') ? (
-                  <div className="w-full h-[365px] rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-inner">
-                    <iframe
-                      src={`${selectedApplication.resume_url}#view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
-                      className="w-full h-full border-0 bg-white"
-                      title="Candidate PDF Resume"
-                    />
+                {/* If Rejected & Purged: Show Zero-Cost Retention Lifecycle Notice */}
+                {selectedApplication.status === 'Rejected' && !selectedApplication.resume_url ? (
+                  <div className="p-6 bg-red-50/70 rounded-2xl border border-red-200 text-center space-y-3">
+                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 mx-auto">
+                      <Trash2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-red-900">
+                        Resume Purged Upon Rejection
+                      </h4>
+                      <p className="text-[11px] text-red-700 font-medium mt-1 leading-relaxed">
+                        To maintain zero cloud storage costs and uphold data privacy, the attached PDF was automatically removed from storage while candidate audit metadata is retained.
+                      </p>
+                    </div>
                   </div>
                 ) : (
-                  <div className="w-full h-[365px] rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-inner">
-                    <iframe
-                      srcDoc={generateResumeHtml(selectedApplication)}
-                      className="w-full h-full border-0 bg-white"
-                      title="Candidate Document View"
-                    />
-                  </div>
-                )}
+                  <>
+                    {/* PDF Document Viewer Container - Fitted Height */}
+                    {selectedApplication.resume_url && selectedApplication.resume_url.startsWith('data:application/pdf') ? (
+                      <div className="w-full h-[365px] rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-inner">
+                        <iframe
+                          src={`${selectedApplication.resume_url}#view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                          className="w-full h-full border-0 bg-white"
+                          title="Candidate PDF Resume"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-[365px] rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-inner">
+                        <iframe
+                          srcDoc={generateResumeHtml(selectedApplication)}
+                          className="w-full h-full border-0 bg-white"
+                          title="Candidate Document View"
+                        />
+                      </div>
+                    )}
 
-                {/* See PDF Action Button Under the PDF */}
-                <button
-                  onClick={() => handleViewResume(selectedApplication)}
-                  className="w-full py-2.5 rounded-full bg-[#006067] hover:bg-[#004f55] text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs"
-                >
-                  <span>See PDF</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </button>
+                    {/* See PDF Action Button Under the PDF */}
+                    <button
+                      onClick={() => handleViewResume(selectedApplication)}
+                      className="w-full py-2.5 rounded-full bg-[#006067] hover:bg-[#004f55] text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs"
+                    >
+                      <span>See PDF</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                )}
 
               </div>
             </div>
@@ -950,7 +999,16 @@ export default function RecruiterDashboard() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleRunCleanup}
+              disabled={cleaningUp}
+              className="bg-white hover:bg-teal-50 border border-gray-200 hover:border-[#006067] text-[#006067] text-xs font-bold tracking-wider uppercase px-4 py-2.5 rounded-full transition-all shadow-2xs flex items-center gap-2 disabled:opacity-60"
+              title="Trigger Inactivity & Rejected Resumes Cleanup Routine"
+            >
+              <Clock className={`w-3.5 h-3.5 ${cleaningUp ? 'animate-spin' : ''}`} />
+              <span>{cleaningUp ? 'Cleaning...' : 'Auto-Purge Inactive'}</span>
+            </button>
             <button
               onClick={loadAll}
               className="p-2.5 bg-white border border-gray-200 rounded-full hover:bg-gray-50 text-gray-600 transition-colors shadow-sm"
@@ -974,6 +1032,22 @@ export default function RecruiterDashboard() {
             </button>
           </div>
         </div>
+
+        {/* Data Retention & Lifecycle Toast Banner */}
+        {cleanupToast && (
+          <div className="mb-6 p-4 rounded-2xl bg-teal-50 border border-teal-200 text-xs font-bold text-[#006067] flex items-center justify-between shadow-2xs animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4 shrink-0 text-[#006067]" />
+              <span>{cleanupToast}</span>
+            </div>
+            <button
+              onClick={() => setCleanupToast('')}
+              className="p-1 hover:bg-teal-100 rounded-lg text-teal-800 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Tab Navigation */}
         <div className="flex items-center gap-3 border-b border-gray-200 mb-8">

@@ -51,9 +51,16 @@ export async function PUT(
       );
     }
 
+    // Cost-Optimization / Lifecycle Rule:
+    // Immediately purge the resume PDF binary payload upon rejection to free up database storage
+    const updatePayload: Record<string, any> = { status: body.status };
+    if (body.status === 'Rejected') {
+      updatePayload.resume_url = null;
+    }
+
     const { data, error } = await supabase
       .from('applications')
-      .update({ status: body.status })
+      .update(updatePayload)
       .eq('id', id)
       .select()
       .single();
