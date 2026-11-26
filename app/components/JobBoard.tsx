@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { 
   Search, MapPin, Briefcase, Zap, ChevronDown, 
   RotateCcw, Sparkles, Loader2, DollarSign, Building2, Globe
@@ -337,21 +338,14 @@ export default function JobBoard({ onApplyJob }: JobBoardProps) {
                       )}
                     </div>
 
-                    {/* Apply Now Button with Expanding Bubble / Ripple Hover Effect */}
-                    <button
-                      type="button"
-                      onClick={() => onApplyJob(job)}
-                      className="relative overflow-hidden w-full mt-2 bg-teal-50/70 border border-[#006067]/20 text-[#006067] text-xs font-black tracking-widest uppercase py-3.5 rounded-full transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-sm"
+                    {/* View Details Link navigating to fresh dedicated role page */}
+                    <Link
+                      href={`/careers/${job.id}`}
+                      className="w-full mt-2 bg-gray-50 hover:bg-[#006067] text-gray-700 hover:text-white border border-gray-200/80 hover:border-[#006067] text-xs font-semibold tracking-wider uppercase py-3.5 rounded-full transition-all duration-300 flex items-center justify-center gap-2 shadow-sm group/btn"
                     >
-                      {/* The Teal Bubble Expanding Animation */}
-                      <span className="absolute inset-0 bg-[#006067] rounded-full scale-0 group-hover/btn:scale-150 transition-transform duration-500 ease-out origin-center pointer-events-none" />
-                      
-                      {/* Button Text & Icon (stays above expanding bubble) */}
-                      <span className="relative z-10 group-hover/btn:text-white transition-colors duration-300">
-                        Quick Apply & View
-                      </span>
-                      <Zap className="relative z-10 w-3.5 h-3.5 fill-current group-hover/btn:text-white transition-colors duration-300" />
-                    </button>
+                      <span>View Details</span>
+                      <Zap className="w-3.5 h-3.5 fill-current opacity-70 group-hover/btn:opacity-100" />
+                    </Link>
 
                   </div>
                 ))}

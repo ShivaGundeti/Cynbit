@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Manrope } from 'next/font/google';
 import "./globals.css";
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-manrope',
-});
 
 export const metadata: Metadata = {
   title: "Cynbit Technologies | High-Performance Engineering & Careers",
@@ -19,8 +12,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${manrope.className} ${manrope.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-white text-gray-900 font-sans">
+    <html lang="en" className="h-full antialiased font-sans">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      </head>
+      <body className="min-h-full flex flex-col bg-white text-gray-900 font-sans" style={{ fontFamily: "'Manrope', system-ui, -apple-system, sans-serif" }}>
         {children}
       </body>
     </html>
