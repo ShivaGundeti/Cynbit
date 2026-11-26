@@ -3,6 +3,7 @@
 > **Candidate:** Shiva Kumar Gundeti  
 > **Role Applied:** Full Stack Developer Intern  
 > **Company:** Cynbit Technologies (`https://cynbit.in`)  
+> **Live Production URL:** [https://cynbit-drab.vercel.app/](https://cynbit-drab.vercel.app/)  
 > **Project Repository:** [https://github.com/ShivaGundeti/Cynbit.git](https://github.com/ShivaGundeti/Cynbit.git)  
 
 ---
