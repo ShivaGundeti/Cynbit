@@ -14,11 +14,11 @@ export default function Navbar({ currentView = 'candidate', onViewChange }: Navb
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-      {/* w-full with generous horizontal padding pushes logo to far-left & actions to far-right */}
+    
       <div className="w-full px-6 sm:px-10 lg:px-14">
         <div className="flex items-center justify-between h-20">
           
-          {/* 1. Far Left: Cynbit Logo */}
+       
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
               <img
@@ -29,7 +29,7 @@ export default function Navbar({ currentView = 'candidate', onViewChange }: Navb
             </Link>
           </div>
 
-          {/* 2. Dead Center: Desktop Navigation Links (Light weight font-semibold, tracking-wider, perfectly centered) */}
+       
           <nav className="hidden lg:flex items-center space-x-9 text-[12px] font-semibold tracking-wider text-[#4a5568] uppercase">
             <div className="flex items-center gap-1.5 cursor-pointer hover:text-[#006067] transition-colors">
               <span>COMPANY</span>
@@ -51,10 +51,10 @@ export default function Navbar({ currentView = 'candidate', onViewChange }: Navb
             </Link>
           </nav>
 
-          {/* 3. Far Right: Prototype Role Switcher & JOIN US Button */}
+         
           <div className="hidden sm:flex items-center space-x-4 flex-shrink-0">
             
-            {/* Reviewer Role Switcher Pill */}
+        
             <div className="flex items-center bg-gray-100 p-1 rounded-full text-xs font-medium border border-gray-200">
               <button
                 type="button"
@@ -82,13 +82,13 @@ export default function Navbar({ currentView = 'candidate', onViewChange }: Navb
               </button>
             </div>
 
-            {/* Cynbit JOIN US Pill */}
+        
             <button className="bg-[#006067] hover:bg-[#004f55] text-white text-[11px] font-bold tracking-widest uppercase px-7 py-2.5 rounded-full transition-all shadow-sm">
               JOIN US
             </button>
           </div>
 
-          {/* 4. Mobile Menu Button */}
+        
           <div className="lg:hidden flex items-center">
             <button
               type="button"
@@ -107,7 +107,7 @@ export default function Navbar({ currentView = 'candidate', onViewChange }: Navb
         </div>
       </div>
 
-      {/* Mobile Drawer Navigation */}
+    
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-gray-100 bg-white px-6 pt-4 pb-6 space-y-3 uppercase font-semibold text-[11px] tracking-wider text-[#4a5568]">
           <div className="py-2.5 hover:text-[#006067] flex justify-between items-center cursor-pointer">

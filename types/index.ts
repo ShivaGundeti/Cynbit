@@ -2,16 +2,19 @@
 export interface Job {
   id: string;
   title: string;
-  department: "Engineering" | "Marketing" | "HR" | "Operations";
-  type: 'Full Time' | 'Internship';
-  workMode: 'Remote' | 'Hybrid' | 'On-site';
+  department: string;
+  type: string;
+  work_mode?: string;
+  workMode?: string;
   location: string;
   experience: string;
   description: string;
-  responsibilities: string[];
-  skillsRequired: string[];
-  status: 'Active' | 'Closed';
-  createdAt: string;
+  responsibilities?: string[];
+  skills_required?: string[];
+  skillsRequired?: string[];
+  status: string;
+  created_at?: string;
+  createdAt?: string;
 }
 
 
