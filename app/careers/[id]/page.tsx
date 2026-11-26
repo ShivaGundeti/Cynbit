@@ -26,6 +26,7 @@ function JobDetailContent() {
   const [errorMessage, setErrorMessage] = useState('');
   const [resumeFileName, setResumeFileName] = useState('');
   const [resumeFileSize, setResumeFileSize] = useState('');
+  const [resumeBase64, setResumeBase64] = useState('');
 
   const formSectionRef = useRef<HTMLDivElement>(null);
   const successSectionRef = useRef<HTMLDivElement>(null);
@@ -96,6 +97,15 @@ function JobDetailContent() {
       setErrorMessage('');
       setResumeFileName(file.name);
       setResumeFileSize((file.size / 1024).toFixed(1) + ' KB');
+
+      // Convert uploaded PDF to base64 Data URL for embedded preview & Chrome viewing
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setResumeBase64(e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
 
       const data = new FormData();
       data.append('resume', file);
@@ -258,7 +268,7 @@ function JobDetailContent() {
         github_url: formData.github_url,
         portfolio_url: formData.portfolio_url,
         why_cynbit: formData.why_cynbit,
-        resume_url: resumeFileName || 'Direct Upload',
+        resume_url: resumeBase64 || resumeFileName || 'Direct Upload',
       };
 
       const res = await fetch('/api/application', {
