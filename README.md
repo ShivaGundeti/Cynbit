@@ -1,98 +1,97 @@
-# Cynbit - Next-Gen Career & Recruitment Automation Platform
+# Cynbit Careers & Talent Platform - Technical Assessment
 
-> Technical assessment prototype proposing an end-to-end full stack recruitment and talent discovery system for [Cynbit Technologies](https://cynbit.in).
+Hi! This project is my technical assessment submission for the Full Stack Developer Intern role at Cynbit.
 
----
-
-## 📌 Executive Summary & Problem Statement
-
-Cynbit Technologies is an engineering firm focused on architecting scalable digital platforms, high-performance engineering labs, and AI automation systems. 
-
-An in-depth audit of the current production website (`https://cynbit.in`) revealed key technical and user-experience opportunities:
-
-1. **Static Career & Internship Openings:**
-   - Role openings and internship tracks are currently hardcoded / pre-rendered statically within frontend bundle chunks.
-   - Any addition, update, or closing of a position requires manual code changes, commits, and full redeployment cycles.
-   - Lacks server-side search, filtering by department, experience level, and employment type.
-
-2. **Application Friction & Lack of Automation:**
-   - The current application process relies on static links and manual external forms with repetitive data entry.
-   - For an AI automation-first company, candidate workflows can be significantly streamlined by providing an automated resume parsing and field extraction engine.
-
-3. **Client-Side State & Navigation Experience:**
-   - Resource and blog sections suffer from full-page roundtrips during pagination (`?page=X`), dropping scroll positions and degrading Core Web Vitals.
-   - Mobile navigation elements (such as hamburger menus) lack explicit dismiss controls, affecting responsive usability.
+I spent time exploring the official [cynbit.in](https://cynbit.in) website as both a user and a developer, looking for areas where we could make a practical and meaningful improvement. Here is what I observed, what I decided to build, and how it works.
 
 ---
 
-## 🚀 Proposed Solution & Architecture
+## 1. What I Found (The Problems)
 
-To address these limitations, this prototype implements a **modular, dynamic Full Stack Career & Applicant Tracking Platform**:
+While going through the website and inspecting the network calls, I noticed three main things:
 
-### 1. Dynamic Public Career Portal (Candidate Flow)
-- **Live Search & Filter Engine:** Instant, client-side & server-backed filtering across departments (Core Engineering, AI, Growth), work modes (Remote, Hybrid), and employment types (Full Time, Internship) without full page reloads.
-- **Interactive Role Inspection:** Drawer/modal views for deep-diving into role specifications, required tech stack badges, and responsibilities.
-- **Smart 1-Click Resume Auto-Fill:** 
-  - Candidates drop their resume (PDF/DOCX).
-  - A server-side extraction engine parses key entities (Full Name, Contact Info, Skills, Portfolio/GitHub, Summary).
-  - Form inputs are automatically populated for instant review and submission.
-- **Application Tracking:** Generates a unique reference code with real-time feedback and state preservation.
+1. **Static Job & Internship Openings:**
+   - When checking the Network tab on `/careers`, I noticed that job listings aren't coming from an API or database. They are hardcoded directly into the frontend.
+   - If HR wants to post a new opening, close a role, or update requirements, a developer has to manually edit the code and redeploy the site every single time.
+   - There is no dynamic filtering or search.
 
-### 2. Recruiter & Operations Management (Admin Flow)
-- **Role-Based Portal Access:** Dedicated management interface enabling internal teams to manage active openings.
-- **CRUD Operations on Job Openings:** Add new roles, update requirements/status (Active/Closed), and delete obsolete tracks with instant propagation to the public board.
-- **Applicant Inbox:** Real-time visibility into submitted candidate profiles, extracted skill tags, and attached credentials.
+2. **The Resume & Application Experience:**
+   - Right now, Cynbit asks candidates to paste a Google Drive link for their resume.
+   - I realized why: storing thousands of PDF files on servers costs money, and links are free.
+   - But as a candidate, this causes friction. Candidates have to remember to set Google Drive permissions to "Public / Anyone with link". If they forget, recruiters get "Access Denied" and cannot view the resume.
+   - Candidates also have to fill out long forms with duplicate information that is already present inside their resume.
 
----
-
-## 🛠️ Technical Stack Choices
-
-- **Frontend & App Framework:** Next.js (App Router, React Server Components & Client Hydration, TypeScript)
-- **Styling & UI Components:** Tailwind CSS, Lucide Icons, responsive mobile-first architecture
-- **Backend & API Layer:** Next.js Route Handlers (RESTful architecture)
-- **Resume Extraction Engine:** Server-side document text parser + entity extraction pipeline
-- **Data Persistence:** Relational schema / structured storage with seed data
-- **Deployment:** Vercel (Edge network, global CDN)
+3. **Page-reload Glitches:**
+   - In sections like blogs and insights, clicking pagination triggers a full page reload, losing scroll position.
 
 ---
 
-## 🔌 API Design & Specifications
+## 2. My Proposed Solution
 
-| HTTP Method | Endpoint | Description | Access |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/jobs` | Retrieve all job openings with query filters (`department`, `type`, `search`) | Public |
-| `GET` | `/api/jobs/:id` | Fetch specific job details | Public |
-| `POST` | `/api/jobs` | Create a new job opening | Recruiter / Admin |
-| `PUT / PATCH`| `/api/jobs/:id` | Update job attributes or status (Active/Closed) | Recruiter / Admin |
-| `DELETE` | `/api/jobs/:id` | Remove a job listing | Recruiter / Admin |
-| `POST` | `/api/resume/parse` | Multipart upload for PDF parsing and entity extraction | Public |
-| `POST` | `/api/applications` | Submit candidate application linked to a role | Public |
-| `GET` | `/api/applications` | Review all submitted candidate applications | Recruiter / Admin |
+Instead of just fixing small CSS styling issues, I wanted to build a complete, production-ready **Careers & Smart Application System** that solves real problems for both candidates and recruiters:
 
----
+### A. Candidate Side:
+- **Dynamic Job Board:** Search and filter jobs by department (Engineering, Growth, AI) and type (Full Time, Internship) with instant results and no full page reloads.
+- **Smart Resume Auto-Fill:** Candidates upload their resume (PDF). Our backend extracts their key details (Name, Email, Phone, Skills, GitHub/LinkedIn) and auto-fills the form fields for them.
+- **Direct Resume Upload with Smart Cost Management:**
+  - Instead of forcing Google Drive links, candidates can upload their PDF directly.
+  - To solve the storage cost problem, we implement a **Retention & Cleanup Strategy**:
+    - If a recruiter reviews an applicant and clicks **Reject**, the resume file is immediately deleted from storage to free up space.
+    - If an application stays inactive for over 30 days without review, an automated cleanup task purges the file.
+    - This keeps storage usage low and eliminates cloud cost worries while giving candidates a 10x better experience.
 
-## 📂 Project Structure
-
-```text
-├── Cynbit-Docs/           # Initial audits, screenshots, and system design notes
-├── app/
-│   ├── api/              # REST route handlers (/jobs, /applications, /resume)
-│   ├── careers/          # Candidate-facing career portal & smart apply modal
-│   ├── recruiter/        # Recruiter dashboard (Job management & application inbox)
-│   ├── layout.tsx        # Root layout & navbar with Role Switcher
-│   └── page.tsx          # Home redirection / landing page
-├── components/           # Reusable UI cards, filters, file dropzones, skeletons
-├── lib/                  # Resume parsing logic, DB clients, validators
-├── types/                # TypeScript interfaces (Job, Application, ParsedProfile)
-├── README.md
-└── package.json
-```
+### B. Recruiter Side:
+- **Job Management:** Recruiters can add new job openings, edit descriptions/experience, close roles, or delete them through a clean dashboard. Changes appear on the public career board immediately.
+- **Application Viewer:** Recruiters can view all submitted candidate profiles, their extracted skills, and preview their resume.
 
 ---
 
-## 📋 Evaluation & Verification Guide
+## 3. How It Is Built (Tech Stack & Architecture)
 
-1. **Candidate Exploration:** Test live filtering, search response times, and zero-reload URL synchronization.
-2. **Resume Parser:** Upload a PDF resume or click `[Load Sample Resume]` to verify automated entity extraction into form inputs.
-3. **Application Submission:** Submit the form and verify immediate status feedback.
-4. **Recruiter Workflow:** Switch to the Recruiter view, publish a new role, and verify its immediate availability on the public board.
+- **Frontend & Backend:** Next.js (App Router, TypeScript)
+- **Styling:** Tailwind CSS
+- **Database & Storage:** Supabase (PostgreSQL for structured data + Supabase Storage for resume files with Row Level Security)
+- **Deployment:** Vercel
+
+---
+
+## 4. API Endpoints Built
+
+### Jobs
+- `GET /api/job` — Fetch active openings (supports `?department=...` and `?type=...`)
+- `POST /api/job` — Create a new opening
+- `PUT /api/job/[id]` — Update job details or change status (Active/Closed)
+- `DELETE /api/job/[id]` — Remove an opening
+
+### Applications
+- `POST /api/applications` — Submit candidate application with attached resume
+- `GET /api/applications` — Fetch applications for recruiter review
+- `DELETE /api/applications/[id]` — Delete application and clean up attached resume file
+
+---
+
+## 5. How to Run Locally
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/ShivaGundeti/Cynbit.git
+   cd Cynbit
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file with your Supabase credentials:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+   ```
+
+4. Start development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
