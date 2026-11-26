@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from '@/utils/supabase/server';
 
-// 1. GET /api/application/[id] - Fetch single candidate application details
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -30,7 +29,6 @@ export async function GET(
   }
 }
 
-// 2. PUT /api/application/[id] - Recruiter updates application status (Shortlisted, Rejected, In Review)
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -44,7 +42,7 @@ export async function PUT(
       return NextResponse.json({ error: "Status field is required" }, { status: 400 });
     }
 
-    // Allowed status transitions
+
     const validStatuses = ['Submitted', 'In Review', 'Shortlisted', 'Rejected'];
     if (!validStatuses.includes(body.status)) {
       return NextResponse.json(
@@ -74,7 +72,7 @@ export async function PUT(
   }
 }
 
-// 3. DELETE /api/application/[id] - Delete candidate application and cleanup
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
